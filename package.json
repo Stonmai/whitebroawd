@@ -1,0 +1,14 @@
+{
+  "name": "whiteboard-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "web:dev": "npm run dev -w packages/web",
+    "web:build": "npm run build -w packages/web",
+    "extension:dev": "npm run dev -w packages/extension",
+    "extension:build": "npm run build -w packages/extension"
+  }
+}

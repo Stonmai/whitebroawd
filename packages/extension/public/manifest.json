@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Whiteboard Capture",
+  "version": "1.0.0",
+  "description": "Capture tabs and bookmarks to your whiteboard workspace.",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:3000/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
