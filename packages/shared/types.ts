@@ -1,6 +1,6 @@
 export interface WhiteboardNode {
   id: string;
-  type: 'bookmark' | 'tab' | 'note';
+  type: 'bookmark' | 'tab' | 'note' | 'group';
   position: { x: number; y: number };
   width?: number;
   height?: number;

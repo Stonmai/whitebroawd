@@ -17,7 +17,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function getAndClearPendingCaptures() {
   const { pendingCaptures = [] } = await chrome.storage.local.get('pendingCaptures');
-  await chrome.storage.local.set({ pendingCaptures: [] });
+  if (pendingCaptures.length > 0) {
+    console.log(`[Background] Sending ${pendingCaptures.length} captures to whiteboard.`);
+    await chrome.storage.local.set({ pendingCaptures: [] });
+  }
   return pendingCaptures;
 }
 
@@ -42,10 +45,12 @@ async function captureTab(tags?: string[]) {
 
     // Store in storage.local for web app to pick up
     const { pendingCaptures = [] } = await chrome.storage.local.get('pendingCaptures');
+    const updatedCaptures = [...pendingCaptures, captureData];
     await chrome.storage.local.set({ 
-      pendingCaptures: [...pendingCaptures, captureData] 
+      pendingCaptures: updatedCaptures 
     });
 
+    console.log('[Background] Capture successful. Pending count:', updatedCaptures.length);
     return { success: true, count: 1 };
   } catch (error: any) {
     console.error('Capture failed:', error);

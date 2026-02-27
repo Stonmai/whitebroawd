@@ -2,13 +2,14 @@
 window.addEventListener('WHITEBOARD_SYNC_REQUEST', async () => {
   try {
     const response = await chrome.runtime.sendMessage({ type: 'GET_PENDING_CAPTURES' });
-    if (response) {
+    if (response && response.length > 0) {
+      console.log(`[Content Script] Received ${response.length} captures, dispatching to app.`);
       window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_RESPONSE', { 
         detail: response 
       }));
     }
   } catch (error) {
-    console.error('Sync request failed:', error);
+    console.warn('[Content Script] Sync failed (extension might be reloaded):', error);
   }
 });
 

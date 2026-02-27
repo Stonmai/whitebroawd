@@ -126,9 +126,12 @@ const Popup = () => {
           
           <button 
             className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all font-bold text-[11px] flex items-center justify-center gap-2"
-            onClick={() => window.open('http://localhost:3000', '_blank')}
+            onClick={() => {
+              // Try to find the app on any of the common ports
+              window.open('http://localhost:3001', '_blank');
+            }}
           >
-            View Space
+            Go to Whiteboard
           </button>
         </div>
       </div>
