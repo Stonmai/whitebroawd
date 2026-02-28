@@ -65,6 +65,7 @@ async function captureAllTabs() {
 
     for (const tab of tabs) {
       if (!tab.url?.startsWith('http') || tab.url.includes('chrome://')) continue;
+      if (tab.url.match(/localhost:(3000|3001|3002|3003|3004|3005)/)) continue;
       
       // For batch capture, we might skip screenshots to save performance or only capture active one
       // Here we'll just capture metadata for simplicity or try to switch tabs quickly
