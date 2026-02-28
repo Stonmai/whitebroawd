@@ -10,6 +10,7 @@ export interface WhiteboardNode {
     content?: string; // for notes
     favicon?: string;
     screenshot?: string; // base64
+    ogImage?: string;
     description?: string;
     tags?: string[];
     color?: string;
