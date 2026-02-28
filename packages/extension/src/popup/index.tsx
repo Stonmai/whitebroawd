@@ -24,10 +24,11 @@ const Popup = () => {
 
   const handleCapture = async () => {
     setStatus('loading');
+    const allTags = tagInput.trim() ? [...tags, tagInput.trim()] : tags;
     try {
-      const response = await chrome.runtime.sendMessage({ 
+      const response = await chrome.runtime.sendMessage({
         type: 'CAPTURE_TAB',
-        tags: tags 
+        tags: allTags
       });
       if (response.success) {
         setStatus('success');
@@ -128,7 +129,7 @@ const Popup = () => {
             className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all font-bold text-[11px] flex items-center justify-center gap-2"
             onClick={() => {
               // Try to find the app on any of the common ports
-              window.open('http://localhost:3001', '_blank');
+              window.open('http://localhost:3000', '_blank');
             }}
           >
             Go to Whiteboard
