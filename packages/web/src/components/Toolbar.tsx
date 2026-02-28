@@ -139,8 +139,8 @@ const Toolbar = () => {
           {showRooms && (
             <div
               style={{
-                position: 'fixed',
-                bottom: isMobile ? 74 : 90,
+                position: isMobile? 'fixed':'absolute',
+                bottom: 'calc(100% + 14px)',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 background: 'rgba(10, 11, 22, 0.94)',

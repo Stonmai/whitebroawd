@@ -27,10 +27,55 @@ const nodeTypes = {
   group: GroupNode,
 };
 
-type PasteHandlerProps = {
+type HandlerProps = {
   addNode: (node: any) => void;
   updateNode: (id: string, data: any) => void;
 };
+
+const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
+  const { screenToFlowPosition } = useReactFlow();
+
+  useEffect(() => {
+    const handleSyncResponse = (event: any) => {
+      const pendingCaptures = event.detail;
+      if (!Array.isArray(pendingCaptures) || pendingCaptures.length === 0) return;
+
+      const COL_W = 220;
+      const ROW_H = 280;
+      const cols = Math.ceil(Math.sqrt(pendingCaptures.length));
+      const rows = Math.ceil(pendingCaptures.length / cols);
+
+      // Centre the grid on the current viewport
+      const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      const originX = center.x - ((cols - 1) * COL_W) / 2;
+      const originY = center.y - ((rows - 1) * ROW_H) / 2;
+
+      pendingCaptures.forEach((capture: any, index: number) => {
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const nodeId = uuidv4();
+        addNode({
+          id: nodeId,
+          type: 'bookmark',
+          position: { x: originX + col * COL_W, y: originY + row * ROW_H },
+          width: 180,
+          data: capture,
+          createdAt: new Date().toISOString(),
+        });
+        if (!capture.screenshot && capture.url) {
+          fetchMetadata(capture.url).then((metadata: any) => { updateNode(nodeId, metadata); });
+        }
+      });
+    };
+
+    window.addEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
+    return () => window.removeEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
+  }, [addNode, updateNode, screenToFlowPosition]);
+
+  return null;
+};
+
+type PasteHandlerProps = HandlerProps;
 
 const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
   const { screenToFlowPosition } = useReactFlow();
@@ -107,6 +152,8 @@ const Canvas = () => {
   const snapshot = useStore((state) => state.snapshot);
   const undo = useStore((state) => state.undo);
   const redo = useStore((state) => state.redo);
+  const copyNodes = useStore((state) => state.copyNodes);
+  const pasteNodes = useStore((state) => state.pasteNodes);
 
   // Track which group is being hovered during a drag
   const [dropTargetId, setDropTargetId] = React.useState<string | null>(null);
@@ -267,54 +314,38 @@ const Canvas = () => {
   }, [nodes, previewNodeId]);
 
 
-  // Undo / Redo keyboard shortcuts
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey;
       if (!meta) return;
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-      if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); redo(); }
+      const store = useStore.getState();
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); store.undo(); }
+      if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); store.redo(); }
+      if (e.key === 'c') {
+        e.preventDefault();
+        store.copyNodes();
+        const { nodes: allNodes, selectedNodes: sel } = store;
+        const picked = allNodes.filter(n => sel.includes(n.id));
+        if (picked.length === 1 && (picked[0].type === 'bookmark' || picked[0].type === 'tab') && picked[0].data.url) {
+          navigator.clipboard.writeText(picked[0].data.url as string).catch(() => {});
+        }
+      }
+      if (e.key === 'v') { e.preventDefault(); store.pasteNodes(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+  }, []);
 
-  // Sync with extension
+  // Periodically request sync from the extension
   useEffect(() => {
-    const handleSyncResponse = (event: any) => {
-      const pendingCaptures = event.detail;
-      if (Array.isArray(pendingCaptures)) {
-        pendingCaptures.forEach(capture => {
-          const nodeId = uuidv4();
-          addNode({
-            id: nodeId,
-            type: 'bookmark',
-            position: { x: Math.random() * 500, y: Math.random() * 500 },
-            width: 180,
-            data: capture,
-            createdAt: new Date().toISOString(),
-          });
-          if (!capture.screenshot && capture.url) {
-            fetchMetadata(capture.url).then(metadata => { updateNode(nodeId, metadata); });
-          }
-        });
-      }
-    };
-
-    window.addEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
-
-    // Periodically request sync
     const interval = setInterval(() => {
       window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_REQUEST'));
     }, 2000);
-
-    return () => {
-      window.removeEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
-      clearInterval(interval);
-    };
-  }, [addNode, updateNode]);
+    return () => clearInterval(interval);
+  }, []);
 
 
   if (!isMounted) return null;
@@ -354,6 +385,7 @@ const Canvas = () => {
         <Controls position="bottom-left" style={{ marginBottom: 110, marginLeft: 20 }} />
         <Toolbar />
         <PasteHandler addNode={addNode} updateNode={updateNode} />
+        <SyncHandler addNode={addNode} updateNode={updateNode} />
       </ReactFlow>
 
       {previewNode && (

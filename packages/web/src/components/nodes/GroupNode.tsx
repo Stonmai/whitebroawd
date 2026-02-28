@@ -18,7 +18,7 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
 
   React.useEffect(() => {
     if (editingNodeId === id) {
-      setNameInput('');
+      setNameInput(data.title || 'New Group');
       setIsEditingName(true);
       setEditingNodeId(null);
       setTimeout(() => inputRef.current?.focus(), 0);

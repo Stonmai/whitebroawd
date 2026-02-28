@@ -52,6 +52,7 @@ interface WhiteboardState {
   selectedNodes: string[];
   previewNodeId: string | null;
   editingNodeId: string | null;
+  clipboard: Node[];
   _past: HistoryEntry[];
   _future: HistoryEntry[];
   rooms: RoomData[];
@@ -65,6 +66,8 @@ interface WhiteboardState {
   addNode: (node: WhiteboardNode) => void;
   deleteNode: (id: string) => void;
   updateNode: (id: string, data: Partial<WhiteboardNode['data']>) => void;
+  copyNodes: () => void;
+  pasteNodes: () => void;
   createGroup: (group: GroupFrame) => void;
   deleteGroup: (id: string) => void;
   removeGroup: (id: string) => void;
@@ -101,11 +104,56 @@ export const useStore = create<WhiteboardState>()(
   selectedNodes: [],
   previewNodeId: null,
   editingNodeId: null,
+  clipboard: [],
   _past: [],
   _future: [],
   hasSeenIntro: false,
 
   dismissIntro: () => set({ hasSeenIntro: true }),
+
+  copyNodes: () => {
+    const { nodes, selectedNodes } = get();
+    const selected = nodes.filter(n => selectedNodes.includes(n.id));
+    // Also include children of any selected groups
+    const selectedGroupIds = new Set(selected.filter(n => n.type === 'group').map(n => n.id));
+    const children = selectedGroupIds.size > 0
+      ? nodes.filter(n => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
+      : [];
+    const copied = [...selected, ...children];
+    if (copied.length > 0) set({ clipboard: copied });
+  },
+
+  pasteNodes: () => {
+    const { clipboard, nodes, edges, _past } = get();
+    if (clipboard.length === 0) return;
+    const OFFSET = 24;
+    const idMap = new Map<string, string>();
+    // First pass: generate all new IDs
+    clipboard.forEach(n => {
+      idMap.set(n.id, `${n.id}-copy-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
+    });
+    // Second pass: build pasted nodes with remapped parentNode references
+    const clipboardIds = new Set(clipboard.map(n => n.id));
+    const pasted = clipboard.map(n => {
+      const newId = idMap.get(n.id)!;
+      const newParent = n.parentNode && clipboardIds.has(n.parentNode) ? idMap.get(n.parentNode) : undefined;
+      // Only offset top-level nodes (children keep their relative position inside the group)
+      const isChild = n.parentNode && clipboardIds.has(n.parentNode);
+      return {
+        ...n,
+        id: newId,
+        selected: true,
+        parentNode: newParent,
+        position: isChild ? n.position : { x: n.position.x + OFFSET, y: n.position.y + OFFSET },
+      };
+    });
+    set({
+      nodes: [...nodes.map(n => ({ ...n, selected: false })), ...pasted],
+      selectedNodes: pasted.map(n => n.id),
+      _past: [..._past.slice(-49), { nodes, edges }],
+      _future: [],
+    });
+  },
 
   snapshot: () => {
     const { nodes, edges, _past } = get();
