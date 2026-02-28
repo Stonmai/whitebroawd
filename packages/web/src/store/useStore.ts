@@ -56,6 +56,7 @@ interface WhiteboardState {
   _future: HistoryEntry[];
   rooms: RoomData[];
   currentRoomId: RoomType;
+  hasSeenIntro: boolean;
 
   // Actions
   onNodesChange: OnNodesChange;
@@ -78,6 +79,7 @@ interface WhiteboardState {
   snapshot: () => void;
   undo: () => void;
   redo: () => void;
+  dismissIntro: () => void;
 }
 
 export const useStore = create<WhiteboardState>()(
@@ -101,6 +103,9 @@ export const useStore = create<WhiteboardState>()(
   editingNodeId: null,
   _past: [],
   _future: [],
+  hasSeenIntro: false,
+
+  dismissIntro: () => set({ hasSeenIntro: true }),
 
   snapshot: () => {
     const { nodes, edges, _past } = get();
@@ -489,6 +494,7 @@ export const useStore = create<WhiteboardState>()(
     edges: state.edges,
     groups: state.groups,
     tags: state.tags,
+    hasSeenIntro: state.hasSeenIntro,
   }),
   onRehydrateStorage: () => (state) => {
     if (!state) return;

@@ -15,6 +15,7 @@ import NoteNode from './nodes/NoteNode';
 import GroupNode from './nodes/GroupNode';
 import Toolbar from './Toolbar';
 import PreviewModal from './PreviewModal';
+import IntroModal from './IntroModal';
 
 import { v4 as uuidv4 } from 'uuid';
 import { fetchMetadata } from '@/utils/metadata';
@@ -352,11 +353,13 @@ const Canvas = () => {
       </ReactFlow>
 
       {previewNode && (
-        <PreviewModal 
-          node={previewNode} 
-          onClose={() => setPreviewNodeId(null)} 
+        <PreviewModal
+          node={previewNode}
+          onClose={() => setPreviewNodeId(null)}
         />
       )}
+
+      <IntroModal />
     </div>
   );
 };

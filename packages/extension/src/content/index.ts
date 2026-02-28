@@ -1,3 +1,6 @@
+// Signal to the web app that this extension is installed
+document.documentElement.setAttribute('data-whiteboard-ext', 'true');
+
 // Custom event listener for the web app to trigger a sync
 window.addEventListener('WHITEBOARD_SYNC_REQUEST', async () => {
   try {
