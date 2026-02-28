@@ -20,7 +20,7 @@ const IntroModal = () => {
   if (hasSeenIntro) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6" style={{ background: 'rgba(11,12,22,0.85)', backdropFilter: 'blur(12px)' }}>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: 'rgba(11,12,22,0.85)', backdropFilter: 'blur(12px)' }}>
       <div
         className="relative w-full max-w-lg rounded-3xl overflow-hidden"
         style={{ background: '#13141f', border: '1px solid rgba(200,241,53,0.15)', boxShadow: '0 0 60px rgba(200,241,53,0.07)' }}
@@ -29,10 +29,10 @@ const IntroModal = () => {
         {/* Top accent line */}
         <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg, transparent, #c8f135, transparent)' }} />
 
-        <div className="p-8">
+        <div className="p-5 sm:p-8">
           {/* Logo / Title */}
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tight" style={{ color: '#c8f135', letterSpacing: '-0.02em' }}>
+          <div className="mb-5 sm:mb-8 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: '#c8f135', letterSpacing: '-0.02em' }}>
               whitebroawd
             </h1>
             <p className="mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -41,7 +41,7 @@ const IntroModal = () => {
           </div>
 
           {/* Steps */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-3 mb-5 sm:mb-8">
             {/* Step 1 — Extension */}
             <div className="flex items-start gap-4 rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: extInstalled ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)', color: extInstalled ? '#c8f135' : 'rgba(255,255,255,0.5)', border: extInstalled ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.1)' }}>

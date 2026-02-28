@@ -133,7 +133,7 @@ const Popup = () => {
           <button
             className="py-2.5 rounded-xl transition-all font-bold text-[11px] flex items-center justify-center gap-2"
             style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
-            onClick={() => window.open('http://localhost:3000', '_blank')}
+            onClick={() => window.open('https://whitebroawd-web.vercel.app', '_blank')}
           >
             Open App
           </button>

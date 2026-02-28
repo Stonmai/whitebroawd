@@ -287,20 +287,24 @@ const Canvas = () => {
       const pendingCaptures = event.detail;
       if (Array.isArray(pendingCaptures)) {
         pendingCaptures.forEach(capture => {
+          const nodeId = uuidv4();
           addNode({
-            id: uuidv4(),
+            id: nodeId,
             type: 'bookmark',
             position: { x: Math.random() * 500, y: Math.random() * 500 },
             width: 180,
             data: capture,
             createdAt: new Date().toISOString(),
           });
+          if (!capture.screenshot && capture.url) {
+            fetchMetadata(capture.url).then(metadata => { updateNode(nodeId, metadata); });
+          }
         });
       }
     };
 
     window.addEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
-    
+
     // Periodically request sync
     const interval = setInterval(() => {
       window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_REQUEST'));
@@ -310,7 +314,7 @@ const Canvas = () => {
       window.removeEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
       clearInterval(interval);
     };
-  }, [addNode]);
+  }, [addNode, updateNode]);
 
 
   if (!isMounted) return null;

@@ -200,7 +200,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<WhiteboardNode['data']>)
                 </p>
               )}
 
-              {data.screenshot && (
+              {(data.screenshot || data.ogImage) && (
                 <div
                   className="w-full aspect-video rounded-lg overflow-hidden mb-2 cursor-pointer"
                   style={{ border: '1px solid rgba(255,255,255,0.08)' }}
@@ -208,7 +208,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<WhiteboardNode['data']>)
                   onDoubleClick={(e) => e.stopPropagation()}
                 >
                   <img
-                    src={data.screenshot as string}
+                    src={(data.screenshot || data.ogImage) as string}
                     alt="Preview"
                     className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition-opacity"
                     onError={(e) => {

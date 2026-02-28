@@ -27,6 +27,14 @@ const Toolbar = () => {
   const { screenToFlowPosition } = useReactFlow();
 
   const [showRooms, setShowRooms] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 540);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const roomsRef = React.useRef<HTMLDivElement>(null);
 
   // Close panel on outside click
@@ -110,10 +118,12 @@ const Toolbar = () => {
   ];
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ maxWidth: 'calc(100vw - 2rem)' }}>
       <div
-        className="flex items-center gap-2 px-4 py-1"
+        className="flex items-center"
         style={{
+          gap: isMobile ? 4 : 8,
+          padding: isMobile ? '0 10px' : '0 16px',
           animation: 'pillFloat 5s ease-in-out infinite',
           background: 'rgba(10, 11, 22, 0.72)',
           backdropFilter: 'blur(28px)',
@@ -121,7 +131,7 @@ const Toolbar = () => {
           border: '1px solid rgba(255,255,255,0.10)',
           borderRadius: '40px',
           boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)',
-          height: 76,
+          height: isMobile ? 60 : 76,
         }}
       >
         {/* Rooms button */}
@@ -129,8 +139,8 @@ const Toolbar = () => {
           {showRooms && (
             <div
               style={{
-                position: 'absolute',
-                bottom: 'calc(100% + 14px)',
+                position: 'fixed',
+                bottom: isMobile ? 74 : 90,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 background: 'rgba(10, 11, 22, 0.94)',
@@ -142,7 +152,7 @@ const Toolbar = () => {
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: 8,
-                width: 220,
+                width: Math.min(220, window.innerWidth - 32),
                 boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
               }}
             >
@@ -200,12 +210,12 @@ const Toolbar = () => {
             </div>
           )}
 
-          <div className="flex flex-col items-center justify-center mx-3">
+          <div className="flex flex-col items-center justify-center" style={{ margin: isMobile ? '0 4px' : '0 12px' }}>
             <button
               onClick={() => setShowRooms(v => !v)}
               style={{
-                width: 44,
-                height: 36,
+                width: isMobile ? 36 : 44,
+                height: isMobile ? 32 : 36,
                 borderRadius: 13,
                 background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent',
                 border: 'none',
@@ -216,7 +226,7 @@ const Toolbar = () => {
                 justifyContent: 'center',
                 transition: 'all 0.18s ease',
                 position: 'relative',
-                top: '-5px'
+                top: isMobile ? 0 : '-5px',
               }}
               onMouseEnter={(e) => {
                 if (showRooms) return;
@@ -231,21 +241,23 @@ const Toolbar = () => {
             >
               {currentRoom.icon}
             </button>
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color: showRooms ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                userSelect: 'none',
-                lineHeight: 1.2,
-                textAlign: 'center',
-                whiteSpace: 'normal',
-              }}
-            >
-              {currentRoom.label}
-            </span>
+            {!isMobile && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: showRooms ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  userSelect: 'none',
+                  lineHeight: 1.2,
+                  textAlign: 'center',
+                  whiteSpace: 'normal',
+                }}
+              >
+                {currentRoom.label}
+              </span>
+            )}
           </div>
         </div>
 
@@ -263,8 +275,8 @@ const Toolbar = () => {
             disabled={!item.enabled}
             title={item.label}
             style={{
-              width: 36,
-              height: 36,
+              width: isMobile ? 30 : 36,
+              height: isMobile ? 30 : 36,
               borderRadius: 10,
               background: 'transparent',
               border: 'none',
@@ -296,8 +308,8 @@ const Toolbar = () => {
         <button
           onClick={handleAddBookmark}
           style={{
-            width: 52,
-            height: 52,
+            width: isMobile ? 42 : 52,
+            height: isMobile ? 42 : 52,
             borderRadius: 18,
             background: '#c8f135',
             color: '#0a0b16',
@@ -333,8 +345,8 @@ const Toolbar = () => {
             <button
               onClick={item.action}
               style={{
-                width: 44,
-                height: 36,
+                width: isMobile ? 34 : 44,
+                height: isMobile ? 32 : 36,
                 borderRadius: 13,
                 background: 'transparent',
                 border: 'none',
@@ -345,7 +357,7 @@ const Toolbar = () => {
                 justifyContent: 'center',
                 transition: 'all 0.18s ease',
                 position: 'relative',
-                top: '-5px'
+                top: isMobile ? 0 : '-5px',
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)';
@@ -361,19 +373,21 @@ const Toolbar = () => {
             >
               {item.icon}
             </button>
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.28)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                userSelect: 'none',
-                lineHeight: 1,
-              }}
-            >
-              {item.label}
-            </span>
+            {!isMobile && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'rgba(255,255,255,0.28)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  userSelect: 'none',
+                  lineHeight: 1,
+                }}
+              >
+                {item.label}
+              </span>
+            )}
           </div>
         ))}
       </div>
