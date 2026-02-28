@@ -39,12 +39,12 @@ const PreviewModal = ({ node, onClose }: PreviewModalProps) => {
 
         {/* Content */}
         <div className="p-0 overflow-y-auto max-h-[70vh]">
-          {node.data.screenshot ? (
+          {node.data.screenshot || node.data.ogImage ? (
             <div className="w-full bg-slate-50 border-b border-slate-100">
-              <img 
-                src={node.data.screenshot} 
-                alt="Full Screenshot" 
-                className="w-full h-auto object-contain max-h-[500px]" 
+              <img
+                src={node.data.screenshot || node.data.ogImage}
+                alt="Full Screenshot"
+                className="w-full h-auto object-contain max-h-[500px]"
               />
             </div>
           ) : (

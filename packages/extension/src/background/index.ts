@@ -75,6 +75,7 @@ async function captureAllTabs() {
         url: tab.url,
         favicon: tab.favIconUrl,
         description: metadata?.description || '',
+        ogImage: metadata?.ogImage || '',
         timestamp: new Date().toISOString()
       };
 
