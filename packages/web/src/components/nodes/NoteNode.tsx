@@ -202,7 +202,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<WhiteboardNode['data']>) => 
                 className="font-bold text-[14px] mb-1.5 break-words leading-tight"
                 style={{ color: style.text, textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
               >
-                {title || 'New Note'}
+                {title || 'New Note 🔖'}
               </h3>
               <p
                 className="text-[12px] whitespace-pre-wrap leading-relaxed break-words line-clamp-4 font-medium"
@@ -236,7 +236,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<WhiteboardNode['data']>) => 
         <div
           className={cn(
             'absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
-            isEditing
+            isEditing || selected
               ? 'opacity-100 translate-y-0'
               : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
           )}

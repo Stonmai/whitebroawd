@@ -4,6 +4,7 @@ import React, { memo, useState, useRef } from 'react';
 import { NodeProps, NodeResizer } from 'reactflow';
 import { FolderX, Pencil, Check, X } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { cn } from '@/utils/cn';
 
 const GroupNode = ({ id, data, selected }: NodeProps) => {
   const removeGroup = useStore(s => s.removeGroup);
@@ -18,7 +19,7 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
 
   React.useEffect(() => {
     if (editingNodeId === id) {
-      setNameInput(data.title || 'New Group');
+      setNameInput(data.title || '');
       setIsEditingName(true);
       setEditingNodeId(null);
       setTimeout(() => inputRef.current?.focus(), 0);
@@ -27,19 +28,19 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
 
   const handleStartEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setNameInput(data.title || 'Group');
+    setNameInput(data.title || '');
     setIsEditingName(true);
     setTimeout(() => inputRef.current?.select(), 0);
   };
 
   const handleSaveName = () => {
-    const trimmed = nameInput.trim();
-    if (trimmed) updateNode(id, { title: trimmed } as any);
+    const trimmed = nameInput.trim() || 'New Group 📦';
+    if (trimmed) updateNode(id, { title: trimmed} as any);
     setIsEditingName(false);
   };
 
   const handleCancelName = () => {
-    setNameInput(data.title || 'Group');
+    setNameInput(data.title || 'New Group 📦');
     setIsEditingName(false);
   };
 
@@ -76,7 +77,7 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
 
       {/* Group label */}
       <div
-        style={{ position: 'absolute', top: -34, left: 0, display: 'flex', alignItems: 'center', gap: 8 }}
+        style={{ position: 'absolute', top: -65, left: 0, display: 'flex', alignItems: 'center', gap: 8 }}
       >
         {isEditingName ? (
           <div className="flex items-center gap-1">
@@ -88,7 +89,8 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
                 if (e.key === 'Enter') handleSaveName();
                 if (e.key === 'Escape') handleCancelName();
               }}
-              className="rounded-lg px-2 py-0.5 text-[11px] font-bold tracking-widest uppercase text-white outline-none"
+              placeholder="NEW GROUP"
+              className="rounded-lg px-2 py-0.5 text-[11px] font-bold tracking-widest uppercase text-white outline-none placeholder:text-white/30"
               style={{
                 background: 'rgba(255,255,255,0.12)',
                 border: '1px solid rgba(255,255,255,0.25)',
@@ -116,7 +118,7 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
               style={{
                 padding: '3px 10px',
                 borderRadius: 8,
-                fontSize: 11,
+                fontSize: 25,
                 fontWeight: 700,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
@@ -127,7 +129,7 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
                 transition: 'all 0.15s ease',
               }}
             >
-              {data.title || 'Group'}
+              {data.title || 'New Group 📦'}
             </span>
             {data.count !== undefined && (
               <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
@@ -155,7 +157,12 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
 
       {/* Floating action bar */}
       <div
-        className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200 z-50 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0"
+        className={cn(
+          'absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200 z-50',
+          selected
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+        )}
       >
         <button
           className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"

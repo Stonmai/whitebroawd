@@ -16,6 +16,7 @@ import GroupNode from './nodes/GroupNode';
 import Toolbar from './Toolbar';
 import PreviewModal from './PreviewModal';
 import IntroModal from './IntroModal';
+import CursorEffect from './CursorEffect';
 
 import { v4 as uuidv4 } from 'uuid';
 import { fetchMetadata } from '@/utils/metadata';
@@ -83,7 +84,9 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
 type PasteHandlerProps = HandlerProps;
 
 const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
-  const { screenToFlowPosition } = useReactFlow();
+  const { getViewport } = useReactFlow();
+  const getViewportRef = React.useRef(getViewport);
+  useEffect(() => { getViewportRef.current = getViewport; });
 
   useEffect(() => {
     const handlePaste = async (event: ClipboardEvent) => {
@@ -95,16 +98,23 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
       // No text, or text matches what we internally copied → paste nodes
       if (!text || text === _internalClipboardText) {
         const store = useStore.getState();
-        if (store.clipboard.length > 0) store.pasteNodes();
+        if (store.clipboard.length > 0) {
+          const vp = getViewportRef.current();
+          const center = {
+            x: (window.innerWidth * 0.5 - vp.x) / vp.zoom,
+            y: (window.innerHeight * 0.5 - vp.y) / vp.zoom,
+          };
+          store.pasteNodes(center);
+        }
         return;
       }
 
       const isUrl = /^(https?:\/\/[^\s]+)$/.test(text);
 
-      const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      const vp = getViewportRef.current();
       const position = {
-        x: center.x + (Math.random() - 0.5) * 80,
-        y: center.y + (Math.random() - 0.5) * 80,
+        x: (window.innerWidth * 0.5 - vp.x) / vp.zoom + (Math.random() - 0.5) * 80,
+        y: (window.innerHeight * 0.5 - vp.y) / vp.zoom + (Math.random() - 0.5) * 80,
       };
 
       if (isUrl) {
@@ -117,18 +127,21 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
           type: 'bookmark',
           position,
           width: 180,
-          data: { title: displayTitle, url: text },
+          data: { title: displayTitle, url: text, tags: ['pasted url'] },
           createdAt: new Date().toISOString(),
         });
 
         fetchMetadata(text).then(metadata => { updateNode(nodeId, metadata); });
       } else {
+        const lines = text.split('\n');
+        const title = "New Note 🔖"
+        const content = lines || 'Pasted Note';
         addNode({
           id: uuidv4(),
           type: 'note',
           position,
           width: 300,
-          data: { title: 'Pasted Note', content: text },
+          data: { title, content, tags: ['pasted note'] },
           createdAt: new Date().toISOString(),
         });
       }
@@ -136,16 +149,24 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
 
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, [addNode, updateNode, screenToFlowPosition]);
+  }, [addNode, updateNode]);
 
   return null;
 };
 
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
-  const nodes = useStore((state) => state.nodes);
+  const rawNodes = useStore((state) => state.nodes);
+  const activeTagFilters = useStore((state) => state.activeTagFilters);
+  const nodes = React.useMemo(() => {
+    if (activeTagFilters.length === 0) return rawNodes;
+    return rawNodes.map(n => ({
+      ...n,
+      hidden: !(n.data.tags as string[] | undefined)?.some(t => activeTagFilters.includes(t)),
+    }));
+  }, [rawNodes, activeTagFilters]);
   const edges = useStore((state) => state.edges);
-  
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -170,8 +191,8 @@ const Canvas = () => {
 
   // Helper: get the bounding rect of a group node in flow coordinates
   const getGroupBounds = useCallback((groupNode: Node) => {
-    const w = (groupNode.style?.width as number) ?? 300;
-    const h = (groupNode.style?.height as number) ?? 300;
+    const w = (groupNode.style?.width as number) ?? 550;
+    const h = (groupNode.style?.height as number) ?? 450;
     return {
       x: groupNode.position.x,
       y: groupNode.position.y,
@@ -204,7 +225,7 @@ const Canvas = () => {
     (_: React.MouseEvent, draggedNode: Node) => {
       if (draggedNode.type === 'group') return;
       // Remove extent:'parent' immediately so the node is free to leave the group.
-      // parentNode stays so coordinate space is unchanged during this drag.
+      // parentId stays so coordinate space is unchanged during this drag.
       if ((draggedNode as any).extent === 'parent') {
         const currentNodes = useStore.getState().nodes;
         setNodes(
@@ -217,6 +238,9 @@ const Canvas = () => {
     [setNodes]
   );
 
+  // ReactFlow 11 uses `parentNode`; v12+ uses `parentId`. Support both.
+  const getParentId = (n: Node) => (n as any).parentId || (n as any).parentNode;
+
   const onNodeDrag = useCallback(
     (_: React.MouseEvent, draggedNode: Node) => {
       if (draggedNode.type === 'group') return;
@@ -225,8 +249,9 @@ const Canvas = () => {
       // Compute absolute position.
       // During drag, a child node's position is relative to its parent.
       let absolutePos = draggedNode.position;
-      if (draggedNode.parentNode) {
-        const parent = currentNodes.find((n) => n.id === draggedNode.parentNode);
+      const parentId = getParentId(draggedNode);
+      if (parentId) {
+        const parent = currentNodes.find((n) => n.id === parentId);
         if (parent) {
           absolutePos = {
             x: parent.position.x + draggedNode.position.x,
@@ -265,9 +290,8 @@ const Canvas = () => {
 
       // Compute absolute position (children use relative coords while dragging)
       let absolutePos = draggedNode.position;
-      const oldParent = draggedNode.parentNode
-        ? cleared.find((n) => n.id === draggedNode.parentNode)
-        : null;
+      const oldParentId = getParentId(draggedNode);
+      const oldParent = oldParentId ? cleared.find((n) => n.id === oldParentId) : null;
       if (oldParent) {
         absolutePos = {
           x: oldParent.position.x + draggedNode.position.x,
@@ -275,7 +299,7 @@ const Canvas = () => {
         };
       }
 
-      const fakeNode = { ...draggedNode, position: absolutePos, parentNode: undefined };
+      const fakeNode = { ...draggedNode, position: absolutePos, parentId: undefined, parentNode: undefined };
       const targetGroup = findOverlappingGroup(fakeNode, cleared);
 
       const updated = cleared.map((n) => {
@@ -290,8 +314,8 @@ const Canvas = () => {
           return {
             ...n,
             position: relPos,
+            parentId: targetGroup.id,
             parentNode: targetGroup.id,
-            // Do NOT set extent:'parent' — it prevents dragging back out
             extent: undefined,
           };
         } else {
@@ -299,6 +323,7 @@ const Canvas = () => {
           return {
             ...n,
             position: absolutePos,
+            parentId: undefined,
             parentNode: undefined,
             extent: undefined,
           };
@@ -419,6 +444,7 @@ const Canvas = () => {
       )}
 
       <IntroModal />
+      <CursorEffect />
     </div>
   );
 };

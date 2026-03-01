@@ -59,6 +59,7 @@ interface WhiteboardState {
   rooms: RoomData[];
   currentRoomId: RoomType;
   hasSeenIntro: boolean;
+  activeTagFilters: string[];
 
   // Actions
   onNodesChange: OnNodesChange;
@@ -69,7 +70,7 @@ interface WhiteboardState {
   updateNode: (id: string, data: Partial<WhiteboardNode['data']>) => void;
   copyNodes: () => void;
   cutNodes: () => void;
-  pasteNodes: () => void;
+  pasteNodes: (center?: { x: number; y: number }) => void;
   createGroup: (group: GroupFrame) => void;
   deleteGroup: (id: string) => void;
   removeGroup: (id: string) => void;
@@ -85,6 +86,8 @@ interface WhiteboardState {
   undo: () => void;
   redo: () => void;
   dismissIntro: () => void;
+  toggleTagFilter: (tag: string) => void;
+  _getParentId: (n: Node) => string | undefined;
 }
 
 export const useStore = create<WhiteboardState>()(
@@ -110,27 +113,39 @@ export const useStore = create<WhiteboardState>()(
   _past: [],
   _future: [],
   hasSeenIntro: false,
+  activeTagFilters: [],
 
   dismissIntro: () => set({ hasSeenIntro: true }),
+  toggleTagFilter: (tag: string) => {
+    const { activeTagFilters } = get();
+    set({
+      activeTagFilters: activeTagFilters.includes(tag)
+        ? activeTagFilters.filter((t: string) => t !== tag)
+        : [...activeTagFilters, tag],
+    });
+  },
+
+  // ReactFlow 11 uses `parentNode`; v12+ uses `parentId`. Read both.
+  _getParentId: (n: Node): string | undefined => (n as any).parentId || (n as any).parentNode,
 
   copyNodes: () => {
-    const { nodes, selectedNodes } = get();
+    const { nodes, selectedNodes, _getParentId } = get();
     const selected = nodes.filter((n: Node) => selectedNodes.includes(n.id));
     // Also include children of any selected groups
     const selectedGroupIds = new Set(selected.filter((n: Node) => n.type === 'group').map((n: Node) => n.id));
     const children = selectedGroupIds.size > 0
-      ? nodes.filter((n: Node) => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
+      ? nodes.filter((n: Node) => { const pid = _getParentId(n); return pid && selectedGroupIds.has(pid) && !selectedNodes.includes(n.id); })
       : [];
     const copied = [...selected, ...children];
     if (copied.length > 0) set({ clipboard: copied });
   },
 
   cutNodes: () => {
-    const { nodes, edges, selectedNodes, _past } = get();
+    const { nodes, edges, selectedNodes, _past, _getParentId } = get();
     const selected = nodes.filter((n: Node) => selectedNodes.includes(n.id));
     const selectedGroupIds = new Set(selected.filter((n: Node) => n.type === 'group').map((n: Node) => n.id));
     const children = selectedGroupIds.size > 0
-      ? nodes.filter((n: Node) => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
+      ? nodes.filter((n: Node) => { const pid = _getParentId(n); return pid && selectedGroupIds.has(pid) && !selectedNodes.includes(n.id); })
       : [];
     const cut = [...selected, ...children];
     if (cut.length === 0) return;
@@ -145,28 +160,37 @@ export const useStore = create<WhiteboardState>()(
     });
   },
 
-  pasteNodes: () => {
-    const { clipboard, nodes, edges, _past } = get();
+  pasteNodes: (center?: { x: number; y: number }) => {
+    const { clipboard, nodes, edges, _past, _getParentId } = get();
     if (clipboard.length === 0) return;
-    const OFFSET = 24;
     const idMap = new Map<string, string>();
     // First pass: generate all new IDs
     clipboard.forEach((n: Node) => {
       idMap.set(n.id, `${n.id}-copy-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
     });
-    // Second pass: build pasted nodes with remapped parentNode references
     const clipboardIds = new Set(clipboard.map((n: Node) => n.id));
+    // Compute offset to move cluster center to target position
+    const topLevel = clipboard.filter((n: Node) => { const pid = _getParentId(n); return !pid || !clipboardIds.has(pid); });
+    let dx = 24, dy = 24;
+    if (center && topLevel.length > 0) {
+      const cx = topLevel.reduce((s: number, n: Node) => s + n.position.x, 0) / topLevel.length;
+      const cy = topLevel.reduce((s: number, n: Node) => s + n.position.y, 0) / topLevel.length;
+      dx = center.x - cx;
+      dy = center.y - cy;
+    }
+    // Second pass: build pasted nodes with remapped parent references
     const pasted = clipboard.map((n: Node) => {
       const newId = idMap.get(n.id)!;
-      const newParent = n.parentNode && clipboardIds.has(n.parentNode) ? idMap.get(n.parentNode) : undefined;
-      // Only offset top-level nodes (children keep their relative position inside the group)
-      const isChild = n.parentNode && clipboardIds.has(n.parentNode);
+      const oldPid = _getParentId(n);
+      const newParent = oldPid && clipboardIds.has(oldPid) ? idMap.get(oldPid) : undefined;
+      const isChild = oldPid && clipboardIds.has(oldPid);
       return {
         ...n,
         id: newId,
         selected: true,
+        parentId: newParent,
         parentNode: newParent,
-        position: isChild ? n.position : { x: n.position.x + OFFSET, y: n.position.y + OFFSET },
+        position: isChild ? n.position : { x: n.position.x + dx, y: n.position.y + dy },
       };
     });
     set({
@@ -296,7 +320,7 @@ export const useStore = create<WhiteboardState>()(
   },
 
   removeGroup: (id: string) => {
-    const { nodes, edges, _past } = get();
+    const { nodes, edges, _past, _getParentId } = get();
     const groupNode = nodes.find((n: Node) => n.id === id);
     if (!groupNode) return;
     set({
@@ -305,9 +329,10 @@ export const useStore = create<WhiteboardState>()(
       nodes: nodes
         .filter((n: Node) => n.id !== id)
         .map((n: Node) => {
-          if (n.parentNode !== id) return n;
+          if (_getParentId(n) !== id) return n;
           return {
             ...n,
+            parentId: undefined,
             parentNode: undefined,
             extent: undefined,
             position: {
@@ -380,13 +405,14 @@ export const useStore = create<WhiteboardState>()(
       allNodes.filter((n: Node) => n.type === 'group').map((n: Node) => n.id)
     );
     const existingGroups = allNodes.filter((n: Node) => n.type === 'group');
-    const childNodes = allNodes.filter((n: Node) => n.parentNode && existingGroupIds.has(n.parentNode));
+    const getPid = (n: Node): string | undefined => (n as any).parentId || (n as any).parentNode;
+    const childNodes = allNodes.filter((n: Node) => { const pid = getPid(n); return pid && existingGroupIds.has(pid); });
 
     // Top-level (ungrouped) nodes
     const topBookmarks = allNodes.filter(
-      (n: Node) => (n.type === 'bookmark' || n.type === 'tab') && !n.parentNode
+      (n: Node) => (n.type === 'bookmark' || n.type === 'tab') && !getPid(n)
     );
-    const topNotes = allNodes.filter((n: Node) => n.type === 'note' && !n.parentNode);
+    const topNotes = allNodes.filter((n: Node) => n.type === 'note' && !getPid(n));
 
     // Group ungrouped bookmarks by domain
     const domainMap = new Map<string, Node[]>();
@@ -410,13 +436,13 @@ export const useStore = create<WhiteboardState>()(
       const cols = Math.ceil(Math.sqrt(domNodes.length));
       const rows = Math.ceil(domNodes.length / cols);
       const gw = cols * NODE_W + (cols - 1) * NODE_GAP + GROUP_PAD * 2;
-      const gh = rows * NODE_H + (rows - 1) * NODE_GAP + GROUP_PAD * 2 + 40;
+      const gh = rows * NODE_H + (rows - 1) * NODE_GAP + GROUP_PAD * 2 + 130;
 
       newGroups.push({
         id: groupId,
         type: 'group',
         position: { x: 0, y: 0 },
-        style: { width: gw, height: gh },
+        style: { width: Math.max(gw, 550), height: Math.max(gh, 450) },
         data: { title: domain.toUpperCase(), count: domNodes.length },
       });
 
@@ -424,6 +450,7 @@ export const useStore = create<WhiteboardState>()(
         toBeGrouped.add(n.id);
         newGroupChildren.push({
           ...n,
+          parentId: groupId,
           parentNode: groupId,
           extent: undefined,
           position: {
@@ -471,14 +498,14 @@ export const useStore = create<WhiteboardState>()(
     const blocks: Block[] = [
       ...existingGroups.map((g: Node) => ({
         repId: g.id, nodes: [g],
-        w: (g.style?.width as number) ?? 400,
-        h: (g.style?.height as number) ?? 300,
+        w: (g.style?.width as number) ?? 550,
+        h: (g.style?.height as number) ?? 450,
         isGroup: true,
       })),
       ...newGroups.map((g: Node) => ({
         repId: g.id, nodes: [g],
-        w: (g.style?.width as number) ?? 400,
-        h: (g.style?.height as number) ?? 300,
+        w: (g.style?.width as number) ?? 550,
+        h: (g.style?.height as number) ?? 450,
         isGroup: true,
       })),
     ];
@@ -505,7 +532,7 @@ export const useStore = create<WhiteboardState>()(
     });
 
     // Row-based layout
-    const totalArea = blocks.reduce((s, b) => s + (b.w + CLUSTER_GAP) * (b.h + CLUSTER_GAP), 0);
+    const totalArea = blocks.reduce((s: number, b) => s + (b.w + CLUSTER_GAP) * (b.h + CLUSTER_GAP), 0);
     const MAX_ROW_W = Math.max(1400, Math.sqrt(totalArea) * 1.5);
     const blockPositions = new Map<string, { x: number; y: number }>();
     let cx = 0, cy = 0, rowH = 0;

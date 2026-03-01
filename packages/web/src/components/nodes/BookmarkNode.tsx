@@ -184,7 +184,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<WhiteboardNode['data']>)
                 )}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-[13px] font-bold text-white leading-tight break-words mb-0.5">
-                    {data.title || 'Untitled Bookmark'}
+                    {data.title || 'Untitled Bookmark 🔗'}
                   </h3>
                   <p className="text-[9px] text-white/35 break-all font-mono">
                     {data.url as string}
@@ -245,7 +245,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<WhiteboardNode['data']>)
       <div
         className={cn(
           'absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
-          isEditing
+          isEditing || selected
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
         )}
