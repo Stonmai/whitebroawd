@@ -7,17 +7,18 @@ const IntroModal = () => {
   const hasSeenIntro = useStore((s) => s.hasSeenIntro);
   const dismissIntro = useStore((s) => s.dismissIntro);
   const [extInstalled, setExtInstalled] = useState<boolean | null>(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Give the content script a moment to set the attribute
     const timer = setTimeout(() => {
       const installed = document.documentElement.getAttribute('data-whiteboard-ext') === 'true';
       setExtInstalled(installed);
-    }, 300);
+      setVisible(true);
+    }, 1200);
     return () => clearTimeout(timer);
   }, []);
 
-  if (hasSeenIntro) return null;
+  if (hasSeenIntro || !visible) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: 'rgba(11,12,22,0.85)', backdropFilter: 'blur(12px)' }}>
