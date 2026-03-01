@@ -115,11 +115,11 @@ export const useStore = create<WhiteboardState>()(
 
   copyNodes: () => {
     const { nodes, selectedNodes } = get();
-    const selected = nodes.filter(n => selectedNodes.includes(n.id));
+    const selected = nodes.filter((n: Node) => selectedNodes.includes(n.id));
     // Also include children of any selected groups
-    const selectedGroupIds = new Set(selected.filter(n => n.type === 'group').map(n => n.id));
+    const selectedGroupIds = new Set(selected.filter((n: Node) => n.type === 'group').map((n: Node) => n.id));
     const children = selectedGroupIds.size > 0
-      ? nodes.filter(n => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
+      ? nodes.filter((n: Node) => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
       : [];
     const copied = [...selected, ...children];
     if (copied.length > 0) set({ clipboard: copied });
@@ -127,18 +127,18 @@ export const useStore = create<WhiteboardState>()(
 
   cutNodes: () => {
     const { nodes, edges, selectedNodes, _past } = get();
-    const selected = nodes.filter(n => selectedNodes.includes(n.id));
-    const selectedGroupIds = new Set(selected.filter(n => n.type === 'group').map(n => n.id));
+    const selected = nodes.filter((n: Node) => selectedNodes.includes(n.id));
+    const selectedGroupIds = new Set(selected.filter((n: Node) => n.type === 'group').map((n: Node) => n.id));
     const children = selectedGroupIds.size > 0
-      ? nodes.filter(n => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
+      ? nodes.filter((n: Node) => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
       : [];
     const cut = [...selected, ...children];
     if (cut.length === 0) return;
-    const cutIds = new Set(cut.map(n => n.id));
+    const cutIds = new Set(cut.map((n: Node) => n.id));
     set({
       clipboard: cut,
-      nodes: nodes.filter(n => !cutIds.has(n.id)),
-      edges: edges.filter(e => !cutIds.has(e.source) && !cutIds.has(e.target)),
+      nodes: nodes.filter((n: Node) => !cutIds.has(n.id)),
+      edges: edges.filter((e: Edge) => !cutIds.has(e.source) && !cutIds.has(e.target)),
       selectedNodes: [],
       _past: [..._past.slice(-49), { nodes, edges }],
       _future: [],
@@ -151,12 +151,12 @@ export const useStore = create<WhiteboardState>()(
     const OFFSET = 24;
     const idMap = new Map<string, string>();
     // First pass: generate all new IDs
-    clipboard.forEach(n => {
+    clipboard.forEach((n: Node) => {
       idMap.set(n.id, `${n.id}-copy-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
     });
     // Second pass: build pasted nodes with remapped parentNode references
-    const clipboardIds = new Set(clipboard.map(n => n.id));
-    const pasted = clipboard.map(n => {
+    const clipboardIds = new Set(clipboard.map((n: Node) => n.id));
+    const pasted = clipboard.map((n: Node) => {
       const newId = idMap.get(n.id)!;
       const newParent = n.parentNode && clipboardIds.has(n.parentNode) ? idMap.get(n.parentNode) : undefined;
       // Only offset top-level nodes (children keep their relative position inside the group)
@@ -170,8 +170,8 @@ export const useStore = create<WhiteboardState>()(
       };
     });
     set({
-      nodes: [...nodes.map(n => ({ ...n, selected: false })), ...pasted],
-      selectedNodes: pasted.map(n => n.id),
+      nodes: [...nodes.map((n: Node) => ({ ...n, selected: false })), ...pasted],
+      selectedNodes: pasted.map((n: Node) => n.id),
       _past: [..._past.slice(-49), { nodes, edges }],
       _future: [],
     });
@@ -224,7 +224,7 @@ export const useStore = create<WhiteboardState>()(
 
   onConnect: (connection: Connection) => {
     const { nodes, edges, _past } = get();
-    const sourceNode = nodes.find(n => n.id === connection.source);
+    const sourceNode = nodes.find((n: Node) => n.id === connection.source);
     const accentHex = ACCENT_HEX[(sourceNode?.data?.color as string) ?? ''] ?? '#c8f135';
     set({
       _past: [..._past.slice(-49), { nodes, edges }],
@@ -262,8 +262,8 @@ export const useStore = create<WhiteboardState>()(
   deleteNode: (id: string) => {
     const { nodes, edges, _past } = get();
     set({
-      nodes: nodes.filter((node) => node.id !== id),
-      edges: edges.filter((edge) => edge.source !== id && edge.target !== id),
+      nodes: nodes.filter((node: Node) => node.id !== id),
+      edges: edges.filter((edge: Edge) => edge.source !== id && edge.target !== id),
       _past: [..._past.slice(-49), { nodes, edges }],
       _future: [],
     });
@@ -271,7 +271,7 @@ export const useStore = create<WhiteboardState>()(
 
   updateNode: (id: string, data: Partial<WhiteboardNode['data']>) => {
     set({
-      nodes: get().nodes.map((node) => {
+      nodes: get().nodes.map((node: Node) => {
         if (node.id === id) {
           return {
             ...node,
@@ -291,20 +291,20 @@ export const useStore = create<WhiteboardState>()(
 
   deleteGroup: (id: string) => {
     set({
-      groups: get().groups.filter((group) => group.id !== id),
+      groups: get().groups.filter((group: GroupFrame) => group.id !== id),
     });
   },
 
   removeGroup: (id: string) => {
     const { nodes, edges, _past } = get();
-    const groupNode = nodes.find(n => n.id === id);
+    const groupNode = nodes.find((n: Node) => n.id === id);
     if (!groupNode) return;
     set({
       _past: [..._past.slice(-49), { nodes, edges }],
       _future: [],
       nodes: nodes
-        .filter(n => n.id !== id)
-        .map(n => {
+        .filter((n: Node) => n.id !== id)
+        .map((n: Node) => {
           if (n.parentNode !== id) return n;
           return {
             ...n,
@@ -327,7 +327,7 @@ export const useStore = create<WhiteboardState>()(
 
   removeTag: (id: string) => {
     set({
-      tags: get().tags.filter((tag) => tag.id !== id),
+      tags: get().tags.filter((tag: Tag) => tag.id !== id),
     });
   },
 
@@ -352,10 +352,10 @@ export const useStore = create<WhiteboardState>()(
   switchRoom: (id: RoomType) => {
     const { rooms, currentRoomId, nodes, edges, groups } = get();
     if (id === currentRoomId) return;
-    const updatedRooms = rooms.map(r =>
+    const updatedRooms = rooms.map((r: RoomData) =>
       r.id === currentRoomId ? { ...r, nodes, edges, groups } : r
     );
-    const newRoom = updatedRooms.find(r => r.id === id);
+    const newRoom = updatedRooms.find((r: RoomData) => r.id === id);
     if (!newRoom) return;
     set({
       rooms: updatedRooms,
@@ -377,20 +377,20 @@ export const useStore = create<WhiteboardState>()(
 
     // Existing groups and their child ids
     const existingGroupIds = new Set(
-      allNodes.filter(n => n.type === 'group').map(n => n.id)
+      allNodes.filter((n: Node) => n.type === 'group').map((n: Node) => n.id)
     );
-    const existingGroups = allNodes.filter(n => n.type === 'group');
-    const childNodes = allNodes.filter(n => n.parentNode && existingGroupIds.has(n.parentNode));
+    const existingGroups = allNodes.filter((n: Node) => n.type === 'group');
+    const childNodes = allNodes.filter((n: Node) => n.parentNode && existingGroupIds.has(n.parentNode));
 
     // Top-level (ungrouped) nodes
     const topBookmarks = allNodes.filter(
-      n => (n.type === 'bookmark' || n.type === 'tab') && !n.parentNode
+      (n: Node) => (n.type === 'bookmark' || n.type === 'tab') && !n.parentNode
     );
-    const topNotes = allNodes.filter(n => n.type === 'note' && !n.parentNode);
+    const topNotes = allNodes.filter((n: Node) => n.type === 'note' && !n.parentNode);
 
     // Group ungrouped bookmarks by domain
     const domainMap = new Map<string, Node[]>();
-    topBookmarks.forEach(n => {
+    topBookmarks.forEach((n: Node) => {
       const domain = extractDomain(n.data.url);
       if (domain) {
         if (!domainMap.has(domain)) domainMap.set(domain, []);
@@ -435,7 +435,7 @@ export const useStore = create<WhiteboardState>()(
     });
 
     const remainingNodes = [
-      ...topBookmarks.filter(n => !toBeGrouped.has(n.id)),
+      ...topBookmarks.filter((n: Node) => !toBeGrouped.has(n.id)),
       ...topNotes,
     ];
 
@@ -451,8 +451,8 @@ export const useStore = create<WhiteboardState>()(
     };
     const union = (a: string, b: string) => parent.set(find(a), find(b));
 
-    remainingNodes.forEach(n => parent.set(n.id, n.id));
-    allEdges.forEach(e => {
+    remainingNodes.forEach((n: Node) => parent.set(n.id, n.id));
+    allEdges.forEach((e: Edge) => {
       if (remainingIds.has(e.source) && remainingIds.has(e.target)) {
         union(e.source, e.target);
       }
@@ -460,7 +460,7 @@ export const useStore = create<WhiteboardState>()(
 
     // Map root -> nodes in component
     const compMap = new Map<string, Node[]>();
-    remainingNodes.forEach(n => {
+    remainingNodes.forEach((n: Node) => {
       const root = find(n.id);
       if (!compMap.has(root)) compMap.set(root, []);
       compMap.get(root)!.push(n);
@@ -469,13 +469,13 @@ export const useStore = create<WhiteboardState>()(
     // Build layout blocks: groups + connected components
     interface Block { repId: string; nodes: Node[]; w: number; h: number; isGroup: boolean; }
     const blocks: Block[] = [
-      ...existingGroups.map(g => ({
+      ...existingGroups.map((g: Node) => ({
         repId: g.id, nodes: [g],
         w: (g.style?.width as number) ?? 400,
         h: (g.style?.height as number) ?? 300,
         isGroup: true,
       })),
-      ...newGroups.map(g => ({
+      ...newGroups.map((g: Node) => ({
         repId: g.id, nodes: [g],
         w: (g.style?.width as number) ?? 400,
         h: (g.style?.height as number) ?? 300,
@@ -539,11 +539,11 @@ export const useStore = create<WhiteboardState>()(
     });
 
     const finalNodes: Node[] = [
-      ...existingGroups.map(g => ({ ...g, position: nodePositions.get(g.id) ?? g.position })),
-      ...newGroups.map(g => ({ ...g, position: nodePositions.get(g.id) ?? { x: 0, y: 0 } })),
+      ...existingGroups.map((g: Node) => ({ ...g, position: nodePositions.get(g.id) ?? g.position })),
+      ...newGroups.map((g: Node) => ({ ...g, position: nodePositions.get(g.id) ?? { x: 0, y: 0 } })),
       ...childNodes,
       ...newGroupChildren,
-      ...remainingNodes.map(n => ({ ...n, position: nodePositions.get(n.id) ?? n.position })),
+      ...remainingNodes.map((n: Node) => ({ ...n, position: nodePositions.get(n.id) ?? n.position })),
     ];
 
     const { nodes: curNodes, edges: curEdges, _past } = get();
@@ -585,7 +585,7 @@ export const useStore = create<WhiteboardState>()(
     }
     if (!state.rooms || state.rooms.length === 0) {
       // Migrate from old format: move existing nodes/edges/groups into living room
-      state.rooms = DEFAULT_ROOMS.map(r =>
+      state.rooms = DEFAULT_ROOMS.map((r: RoomData) =>
         r.id === 'living-room'
           ? { ...r, nodes: state.nodes || [], edges: state.edges || [], groups: state.groups || [] }
           : r
@@ -595,7 +595,7 @@ export const useStore = create<WhiteboardState>()(
       // Top-level nodes/edges/groups are always the most up-to-date (persisted on every change).
       // Sync them back into the current room so rooms array stays consistent.
       const roomId = state.currentRoomId || 'living-room';
-      state.rooms = state.rooms.map(r =>
+      state.rooms = state.rooms.map((r: RoomData) =>
         r.id === roomId
           ? { ...r, nodes: state.nodes || [], edges: state.edges || [], groups: state.groups || [] }
           : r
