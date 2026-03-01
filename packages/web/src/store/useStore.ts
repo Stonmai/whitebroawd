@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { dexieStorage } from './dexieStorage';
 import {
   Connection,
   Edge,
@@ -67,6 +68,7 @@ interface WhiteboardState {
   deleteNode: (id: string) => void;
   updateNode: (id: string, data: Partial<WhiteboardNode['data']>) => void;
   copyNodes: () => void;
+  cutNodes: () => void;
   pasteNodes: () => void;
   createGroup: (group: GroupFrame) => void;
   deleteGroup: (id: string) => void;
@@ -121,6 +123,26 @@ export const useStore = create<WhiteboardState>()(
       : [];
     const copied = [...selected, ...children];
     if (copied.length > 0) set({ clipboard: copied });
+  },
+
+  cutNodes: () => {
+    const { nodes, edges, selectedNodes, _past } = get();
+    const selected = nodes.filter(n => selectedNodes.includes(n.id));
+    const selectedGroupIds = new Set(selected.filter(n => n.type === 'group').map(n => n.id));
+    const children = selectedGroupIds.size > 0
+      ? nodes.filter(n => n.parentNode && selectedGroupIds.has(n.parentNode) && !selectedNodes.includes(n.id))
+      : [];
+    const cut = [...selected, ...children];
+    if (cut.length === 0) return;
+    const cutIds = new Set(cut.map(n => n.id));
+    set({
+      clipboard: cut,
+      nodes: nodes.filter(n => !cutIds.has(n.id)),
+      edges: edges.filter(e => !cutIds.has(e.source) && !cutIds.has(e.target)),
+      selectedNodes: [],
+      _past: [..._past.slice(-49), { nodes, edges }],
+      _future: [],
+    });
   },
 
   pasteNodes: () => {
@@ -534,7 +556,9 @@ export const useStore = create<WhiteboardState>()(
 }),
 {
   name: 'whitebroawd-storage',
-  storage: createJSONStorage(() => (typeof window !== 'undefined' ? window.localStorage : dummyStorage)),
+  storage: typeof window !== 'undefined'
+    ? createJSONStorage(() => dexieStorage)
+    : createJSONStorage(() => dummyStorage),
   partialize: (state) => ({
     rooms: state.rooms,
     currentRoomId: state.currentRoomId,
@@ -544,8 +568,21 @@ export const useStore = create<WhiteboardState>()(
     tags: state.tags,
     hasSeenIntro: state.hasSeenIntro,
   }),
-  onRehydrateStorage: () => (state) => {
-    if (!state) return;
+  onRehydrateStorage: () => async (state: any) => {
+    // One-time migration: copy localStorage data into Dexie then remove it
+    if (typeof window !== 'undefined' && !state) {
+      const LS_KEY = 'whitebroawd-storage';
+      const raw = window.localStorage.getItem(LS_KEY);
+      if (raw) {
+        try {
+          await dexieStorage.setItem(LS_KEY, raw);
+          window.localStorage.removeItem(LS_KEY);
+        } catch (err) {
+          console.warn('[whitebroawd] localStorage→Dexie migration failed:', err);
+        }
+      }
+      return;
+    }
     if (!state.rooms || state.rooms.length === 0) {
       // Migrate from old format: move existing nodes/edges/groups into living room
       state.rooms = DEFAULT_ROOMS.map(r =>

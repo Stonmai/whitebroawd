@@ -27,6 +27,11 @@ const nodeTypes = {
   group: GroupNode,
 };
 
+// Tracks the last text we wrote to the system clipboard from within the app.
+// If the pasted text matches this, it came from an internal copy/cut and we
+// should paste nodes rather than creating a new node from the text.
+let _internalClipboardText = '';
+
 type HandlerProps = {
   addNode: (node: any) => void;
   updateNode: (id: string, data: any) => void;
@@ -87,8 +92,8 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
 
       const text = event.clipboardData?.getData('text')?.trim();
 
-      if (!text) {
-        // No text in clipboard — paste copied nodes if any
+      // No text, or text matches what we internally copied → paste nodes
+      if (!text || text === _internalClipboardText) {
         const store = useStore.getState();
         if (store.clipboard.length > 0) store.pasteNodes();
         return;
@@ -329,17 +334,27 @@ const Canvas = () => {
       const store = useStore.getState();
       if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); store.undo(); }
       if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); store.redo(); }
-      if (e.key === 'c') {
+      if (e.key === 'c' || e.key === 'x') {
         e.preventDefault();
-        store.copyNodes();
         const { nodes: allNodes, selectedNodes: sel } = store;
         const picked = allNodes.filter(n => sel.includes(n.id));
-        if (picked.length === 1 && (picked[0].type === 'bookmark' || picked[0].type === 'tab') && picked[0].data.url) {
-          // Single bookmark: copy URL to system clipboard for sharing
-          navigator.clipboard.writeText(picked[0].data.url as string).catch(() => {});
-        } else if (picked.length > 0) {
-          // Group / note / multi-select: clear system clipboard so Cmd+V pastes nodes
-          navigator.clipboard.writeText('').catch(() => {});
+        if (e.key === 'x') {
+          store.cutNodes();
+        } else {
+          store.copyNodes();
+        }
+        if (picked.length > 0) {
+          // Build a text representation for the system clipboard
+          const lines = picked
+            .map(n => {
+              if ((n.type === 'bookmark' || n.type === 'tab') && n.data.url) return n.data.url as string;
+              if (n.type === 'note' && n.data.content) return n.data.content as string;
+              return null;
+            })
+            .filter(Boolean) as string[];
+          const text = lines.join('\n');
+          _internalClipboardText = text;
+          navigator.clipboard.writeText(text).catch(() => {});
         }
       }
     };
