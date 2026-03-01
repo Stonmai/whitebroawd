@@ -83,12 +83,18 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
   useEffect(() => {
     const handlePaste = async (event: ClipboardEvent) => {
       const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
 
-      const text = event.clipboardData?.getData('text');
-      if (!text) return;
+      const text = event.clipboardData?.getData('text')?.trim();
 
-      const isUrl = /^(https?:\/\/[^\s]+)$/.test(text.trim());
+      if (!text) {
+        // No text in clipboard — paste copied nodes if any
+        const store = useStore.getState();
+        if (store.clipboard.length > 0) store.pasteNodes();
+        return;
+      }
+
+      const isUrl = /^(https?:\/\/[^\s]+)$/.test(text);
 
       const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
       const position = {
@@ -97,21 +103,20 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
       };
 
       if (isUrl) {
-        const url = text.trim();
         const nodeId = uuidv4();
-        let displayTitle = url;
-        try { displayTitle = new URL(url).hostname.replace('www.', ''); } catch (e) {}
+        let displayTitle = text;
+        try { displayTitle = new URL(text).hostname.replace('www.', ''); } catch (e) {}
 
         addNode({
           id: nodeId,
           type: 'bookmark',
           position,
           width: 180,
-          data: { title: displayTitle, url },
+          data: { title: displayTitle, url: text },
           createdAt: new Date().toISOString(),
         });
 
-        fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata); });
+        fetchMetadata(text).then(metadata => { updateNode(nodeId, metadata); });
       } else {
         addNode({
           id: uuidv4(),
@@ -330,10 +335,13 @@ const Canvas = () => {
         const { nodes: allNodes, selectedNodes: sel } = store;
         const picked = allNodes.filter(n => sel.includes(n.id));
         if (picked.length === 1 && (picked[0].type === 'bookmark' || picked[0].type === 'tab') && picked[0].data.url) {
+          // Single bookmark: copy URL to system clipboard for sharing
           navigator.clipboard.writeText(picked[0].data.url as string).catch(() => {});
+        } else if (picked.length > 0) {
+          // Group / note / multi-select: clear system clipboard so Cmd+V pastes nodes
+          navigator.clipboard.writeText('').catch(() => {});
         }
       }
-      if (e.key === 'v') { e.preventDefault(); store.pasteNodes(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
