@@ -16,7 +16,7 @@ const ROOMS: { id: RoomType; label: string; icon: React.ReactNode }[] = [
 
 const panelStyle: React.CSSProperties = {
   position: 'absolute',
-  bottom: 'calc(100% + 25px)',
+  bottom: 'calc(100% + 18px)',
   left: '50%',
   transform: 'translateX(-50%)',
   background: 'rgba(10, 11, 22, 0.94)',
@@ -166,8 +166,6 @@ const Toolbar = () => {
       { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); } },
       { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); }, active: hasActiveFilters },
       { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); } },
-      { icon: <Undo2 size={18} strokeWidth={2} />, label: 'Undo', action: undo, disabled: !canUndo },
-      { icon: <Redo2 size={18} strokeWidth={2} />, label: 'Redo', action: redo, disabled: !canRedo },
     ];
 
     return (
@@ -225,13 +223,12 @@ const Toolbar = () => {
                   <button
                     key={item.label}
                     onClick={item.action}
-                    disabled={item.disabled}
                     style={{
                       borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                       background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)',
                       border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)',
-                      color: item.active ? '#c8f135' : item.disabled ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)',
-                      cursor: item.disabled ? 'default' : 'pointer',
+                      color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)',
+                      cursor: 'pointer',
                       transition: 'all 0.15s ease',
                     }}
                   >
@@ -244,31 +241,43 @@ const Toolbar = () => {
           )}
 
           {/* Compact pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 10px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
             {/* Rooms */}
             <button
               ref={roomsBtnRef}
               onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); }}
-              style={{ width: 36, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease' }}
+              style={{ width: 34, height: 34, borderRadius: 12, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease' }}
             >
               {currentRoom.icon}
+            </button>
+            {/* Undo */}
+            <button onClick={undo} disabled={!canUndo}
+              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
+            >
+              <Undo2 size={16} strokeWidth={2} />
+            </button>
+            {/* Redo */}
+            <button onClick={redo} disabled={!canRedo}
+              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
+            >
+              <Redo2 size={16} strokeWidth={2} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
             {/* Bookmark + */}
             <button
               onClick={handleAddBookmark}
-              style={{ width: 44, height: 44, borderRadius: 16, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
+              style={{ width: 40, height: 40, borderRadius: 14, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
             >
-              <Plus size={22} strokeWidth={2.5} />
+              <Plus size={20} strokeWidth={2.5} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
             {/* Menu */}
             <button
               onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); }}
               onMouseDown={(e) => e.stopPropagation()}
-              style={{ width: 38, height: 38, borderRadius: 13, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease', position: 'relative' }}
+              style={{ width: 34, height: 34, borderRadius: 12, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease', position: 'relative' }}
             >
-              <Menu size={20} strokeWidth={2} />
+              <Menu size={18} strokeWidth={2} />
               {hasActiveFilters && (
                 <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />
               )}
@@ -286,8 +295,6 @@ const Toolbar = () => {
       { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); } },
       { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); }, active: hasActiveFilters },
       { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); } },
-      { icon: <Undo2 size={18} strokeWidth={2} />, label: 'Undo', action: undo, disabled: !canUndo },
-      { icon: <Redo2 size={18} strokeWidth={2} />, label: 'Redo', action: redo, disabled: !canRedo },
     ];
 
     return (
@@ -340,10 +347,10 @@ const Toolbar = () => {
           {/* Menu grid */}
           {showMenu && (
             <div style={{ ...panelStyle, width: Math.min(240, window.innerWidth - 32) }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                 {mobileMenuItems.map((item) => (
-                  <button key={item.label} onClick={item.action} disabled={item.disabled}
-                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)', border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: item.active ? '#c8f135' : item.disabled ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.65)', cursor: item.disabled ? 'default' : 'pointer', transition: 'all 0.15s ease' }}
+                  <button key={item.label} onClick={item.action}
+                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)', border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)', cursor: 'pointer', transition: 'all 0.15s ease' }}
                   >
                     {item.icon}
                     <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>{item.label}</span>
@@ -354,7 +361,7 @@ const Toolbar = () => {
           )}
 
           {/* Mobile pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
             {/* Rooms */}
             <button
               ref={roomsBtnRef}
@@ -362,6 +369,19 @@ const Toolbar = () => {
               style={{ width: 36, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease' }}
             >
               {currentRoom.icon}
+            </button>
+            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+            {/* Undo */}
+            <button onClick={undo} disabled={!canUndo}
+              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
+            >
+              <Undo2 size={18} strokeWidth={2} />
+            </button>
+            {/* Redo */}
+            <button onClick={redo} disabled={!canRedo}
+              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
+            >
+              <Redo2 size={18} strokeWidth={2} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
             {/* Bookmark + */}

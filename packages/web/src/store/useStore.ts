@@ -17,6 +17,10 @@ import {
 import { WhiteboardNode, GroupFrame, Tag } from '@whiteboard/shared/types';
 import { findPlacement, extractDomain } from '@/utils/clustering';
 
+// Module-level drag tracking — snapshot only if position actually changed
+let _dragging = false;
+let _preDragSnapshot: { nodes: Node[]; edges: Edge[] } | null = null;
+
 const BOOKMARK_COLORS = ['blue', 'green', 'amber', 'purple', 'pink'];
 const NOTE_COLORS = ['purple', 'teal', 'orange', 'pink', 'blue', 'lime'];
 
@@ -231,11 +235,44 @@ export const useStore = create<WhiteboardState>()(
   },
 
   onNodesChange: (changes: NodeChange[]) => {
+    const posChanges = changes.filter(c => c.type === 'position') as Array<{ type: 'position'; dragging?: boolean }>;
+    const isDragging = posChanges.some(c => c.dragging === true);
+    const isDragEnd = posChanges.some(c => c.dragging === false) && _dragging;
+
+    // Snapshot on remove
     if (changes.some(c => c.type === 'remove')) {
       const { nodes, edges, _past } = get();
       set({ _past: [..._past.slice(-49), { nodes, edges }], _future: [] });
     }
-    set({ nodes: applyNodeChanges(changes, get().nodes) });
+
+    // Save pre-drag state on drag start
+    if (isDragging && !_dragging) {
+      const { nodes, edges } = get();
+      _preDragSnapshot = { nodes, edges };
+      _dragging = true;
+    }
+
+    const newNodes = applyNodeChanges(changes, get().nodes);
+
+    // On drag end, only commit to history if position actually changed
+    if (isDragEnd) {
+      _dragging = false;
+      if (_preDragSnapshot) {
+        const snap = _preDragSnapshot;
+        _preDragSnapshot = null;
+        const moved = newNodes.some(n => {
+          const old = snap.nodes.find(o => o.id === n.id);
+          return old && (Math.abs(old.position.x - n.position.x) > 0.5 || Math.abs(old.position.y - n.position.y) > 0.5);
+        });
+        if (moved) {
+          const { edges, _past } = get();
+          set({ nodes: newNodes, _past: [..._past.slice(-49), snap], _future: [] });
+          return;
+        }
+      }
+    }
+
+    set({ nodes: newNodes });
   },
 
   onEdgesChange: (changes: EdgeChange[]) => {

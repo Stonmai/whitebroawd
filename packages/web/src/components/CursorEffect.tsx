@@ -62,29 +62,33 @@ export default function CursorEffect() {
     };
 
     const drawSphere = (x: number, y: number, alpha: number) => {
-      const halo = ctx.createRadialGradient(x, y, 0, x, y, 48);
-      halo.addColorStop(0, `rgba(147, 51, 234, ${0.22 * alpha})`);
-      halo.addColorStop(1, 'rgba(88, 28, 235, 0)');
+      // Outer halo — large, very soft
+      const halo = ctx.createRadialGradient(x, y, 0, x, y, 55);
+      halo.addColorStop(0,   `rgba(147, 51, 234, ${0.28 * alpha})`);
+      halo.addColorStop(0.5, `rgba(99,  60, 220, ${0.12 * alpha})`);
+      halo.addColorStop(1,   'rgba(88, 28, 235, 0)');
       ctx.beginPath();
-      ctx.arc(x, y, 48, 0, Math.PI * 2);
+      ctx.arc(x, y, 55, 0, Math.PI * 2);
       ctx.fillStyle = halo;
       ctx.fill();
 
-      const mid = ctx.createRadialGradient(x, y, 0, x, y, 18);
-      mid.addColorStop(0,   `rgba(167, 139, 250, ${0.85 * alpha})`);
-      mid.addColorStop(0.5, `rgba(147,  51, 234, ${0.5  * alpha})`);
+      // Mid glow
+      const mid = ctx.createRadialGradient(x, y, 0, x, y, 28);
+      mid.addColorStop(0,   `rgba(167, 139, 250, ${0.7  * alpha})`);
+      mid.addColorStop(0.5, `rgba(147,  51, 234, ${0.35 * alpha})`);
       mid.addColorStop(1,   'rgba(88, 28, 235, 0)');
       ctx.beginPath();
-      ctx.arc(x, y, 18, 0, Math.PI * 2);
+      ctx.arc(x, y, 28, 0, Math.PI * 2);
       ctx.fillStyle = mid;
       ctx.fill();
 
-      const core = ctx.createRadialGradient(x - 1, y - 1, 0, x, y, 7);
-      core.addColorStop(0,   `rgba(255, 255, 255,  ${0.95 * alpha})`);
-      core.addColorStop(0.4, `rgba(210, 190, 255,  ${0.9  * alpha})`);
+      // Tiny bright core
+      const core = ctx.createRadialGradient(x - 0.5, y - 0.5, 0, x, y, 4);
+      core.addColorStop(0,   `rgba(255, 255, 255, ${0.95 * alpha})`);
+      core.addColorStop(0.5, `rgba(220, 200, 255, ${0.8  * alpha})`);
       core.addColorStop(1,   'rgba(147, 51, 234, 0)');
       ctx.beginPath();
-      ctx.arc(x, y, 7, 0, Math.PI * 2);
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fillStyle = core;
       ctx.fill();
     };

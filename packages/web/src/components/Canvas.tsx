@@ -180,7 +180,6 @@ const Canvas = () => {
   const previewNodeId = useStore((state) => state.previewNodeId);
   const setPreviewNodeId = useStore((state) => state.setPreviewNodeId);
   const setNodes = useStore((state) => state.setNodes);
-  const snapshot = useStore((state) => state.snapshot);
   const undo = useStore((state) => state.undo);
   const redo = useStore((state) => state.redo);
   const copyNodes = useStore((state) => state.copyNodes);
@@ -280,7 +279,6 @@ const Canvas = () => {
   const onNodeDragStop = useCallback(
     (_: React.MouseEvent, draggedNode: Node) => {
       if (draggedNode.type === 'group') return;
-      snapshot();
       const currentNodes = useStore.getState().nodes;
 
       // Clear all drop-target highlights
