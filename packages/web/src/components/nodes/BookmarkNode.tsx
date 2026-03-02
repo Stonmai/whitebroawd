@@ -15,7 +15,7 @@ const COLORS: Record<
   white: { accent: '#ffffffce', glow: '0 0 28px rgba(255,255,255,0.4)', ring: 'rgba(255,255,255,0.7)', swatch: '#d0d6e2' },
   purple: { accent: '#a855f7', glow: '0 0 28px rgba(168,85,247,0.4)', ring: 'rgba(168,85,247,0.7)', swatch: '#a855f7' },
   blue: { accent: '#3b82f6', glow: '0 0 28px rgba(59,130,246,0.4)', ring: 'rgba(59,130,246,0.7)', swatch: '#3b82f6' },
-  yellow:  { accent: '#f5d70b', glow: '0 0 28px rgba(245,158,11,0.4)', ring: 'rgba(245,158,11,0.7)', swatch: '#f5d70b' },
+  yellow:  { accent: '#f5d70b', glow: '0 0 28px rgba(225,175,69,0.4)', ring: 'rgba(225,175,69,0.7)', swatch: '#f5d70b' },
   green: { accent: '#32d4a1', glow: '0 0 28px rgba(16,185,129,0.4)', ring: 'rgba(16,185,129,0.7)', swatch: '#32d4a1' },
   red: { accent: '#f44355', glow: '0 0 28px rgba(244,120,120,0.4)', ring: 'rgba(244,120,120,0.7)', swatch: '#f44355' },
   amber:  { accent: '#f59e0b', glow: '0 0 28px rgba(245,158,11,0.4)', ring: 'rgba(245,158,11,0.7)', swatch: '#f59e0b' },

@@ -189,9 +189,14 @@ body {
 .group:hover .react-flow__handle,
 .react-flow__handle:hover {
   opacity: 1 !important;
-  transform: scale(1.25) !important;
   box-shadow: 0 0 0 3px var(--accent-glow, rgba(200, 241, 53, 0.35)) !important;
 }
+
+/* Scale per-direction, preserving ReactFlow's centering translate */
+.group:hover .react-flow__handle-top,    .react-flow__handle-top:hover    { transform: translate(-50%, -50%) scale(1.1) !important; }
+.group:hover .react-flow__handle-bottom, .react-flow__handle-bottom:hover { transform: translate(-50%,  50%) scale(1.1) !important; }
+.group:hover .react-flow__handle-left,   .react-flow__handle-left:hover   { transform: translate(-50%, -50%) scale(1.1) !important; }
+.group:hover .react-flow__handle-right,  .react-flow__handle-right:hover  { transform: translate( 50%, -50%) scale(1.1) !important; }
 
 /* Active (connecting) state */
 .react-flow__handle.connecting {

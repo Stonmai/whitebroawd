@@ -72,7 +72,7 @@ const COLORS: Record<
     glow: '0 0 0 2px rgba(148,163,184,0.3), 0 0 20px rgba(148,163,184,0.2)',
     ring: 'rgba(148,163,184,0.5)',
     text: '#ffffff',
-    swatch: '#475569',
+    swatch: '#3e3f5f',
   },
 };
 
@@ -147,10 +147,10 @@ const NoteNode = ({ id, data, selected }: NodeProps<WhiteboardNode['data']>) => 
       }}
     >
       {/* 4 connection handles — visible on hover, connectable in any direction */}
-      <Handle type="source" position={Position.Top}    id="top"    />
-      <Handle type="source" position={Position.Bottom} id="bottom" />
-      <Handle type="source" position={Position.Left}   id="left"   />
-      <Handle type="source" position={Position.Right}  id="right"  />
+      <Handle type="source" position={Position.Top} id="top" style={{}}/>
+      <Handle type="source" position={Position.Bottom} id="bottom" style={{}}/>
+      <Handle type="source" position={Position.Left}   id="left" style={{}}/>
+      <Handle type="source" position={Position.Right}  id="right" style={{}}/>
 
       <NodeResizer color="rgba(255,255,255,0.6)" isVisible={selected} minWidth={160} minHeight={80} />
 
