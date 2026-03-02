@@ -154,6 +154,23 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
   return null;
 };
 
+const ZoomHandler = () => {
+  const { zoomIn, zoomOut } = useReactFlow();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey;
+      if (!meta) return;
+      if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn({ duration: 200 }); }
+      if (e.key === '-') { e.preventDefault(); zoomOut({ duration: 200 }); }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [zoomIn, zoomOut]);
+
+  return null;
+};
+
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
 
@@ -413,6 +430,8 @@ const Canvas = () => {
         snapToGrid={false}
         nodesDraggable={true}
         panOnDrag={true}
+        panOnScroll={true}
+        zoomOnScroll={false}
         selectionKeyCode="Shift"
         multiSelectionKeyCode="Shift"
         selectionMode={'partial' as any}
@@ -434,6 +453,7 @@ const Canvas = () => {
         <Toolbar />
         <PasteHandler addNode={addNode} updateNode={updateNode} />
         <SyncHandler addNode={addNode} updateNode={updateNode} />
+        <ZoomHandler />
       </ReactFlow>
 
       {previewNode && (
