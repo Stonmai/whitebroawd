@@ -156,6 +156,7 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
 
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
+
   const rawNodes = useStore((state) => state.nodes);
   const activeTagFilters = useStore((state) => state.activeTagFilters);
   const nodes = React.useMemo(() => {
@@ -410,6 +411,7 @@ const Canvas = () => {
         connectionMode={'loose' as any}
         connectionRadius={40}
         snapToGrid={false}
+        nodesDraggable={true}
         panOnDrag={true}
         selectionKeyCode="Shift"
         multiSelectionKeyCode="Shift"

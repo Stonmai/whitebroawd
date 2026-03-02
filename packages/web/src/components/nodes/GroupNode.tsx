@@ -158,7 +158,7 @@ const GroupNode = ({ id, data, selected }: NodeProps) => {
       {/* Floating action bar */}
       <div
         className={cn(
-          'absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200 z-50',
+          'nodrag absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200 z-50',
           selected
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'

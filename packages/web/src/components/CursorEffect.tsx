@@ -6,7 +6,7 @@ interface Point  { x: number; y: number; t: number; }
 interface Sphere { x: number; y: number; t: number; }
 
 const TRAIL_MS  = 280;
-const MAX_PTS   = 35;
+const MAX_PTS   = 25;
 const SPHERE_MS = 500;
 
 export default function CursorEffect() {

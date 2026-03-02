@@ -21,8 +21,8 @@ import { findPlacement, extractDomain } from '@/utils/clustering';
 let _dragging = false;
 let _preDragSnapshot: { nodes: Node[]; edges: Edge[] } | null = null;
 
-const BOOKMARK_COLORS = ['blue', 'green', 'amber', 'purple', 'pink'];
-const NOTE_COLORS = ['purple', 'teal', 'orange', 'pink', 'blue', 'lime'];
+const BOOKMARK_COLORS = ['blue', 'green', 'amber', 'yellow', 'purple', 'pink'];
+const NOTE_COLORS = ['purple', 'teal', 'yellow', 'pink', 'blue', 'lime'];
 
 export type RoomType = 'living-room' | 'kitchen' | 'bedroom' | 'toilet';
 
@@ -42,8 +42,8 @@ const DEFAULT_ROOMS: RoomData[] = [
 ];
 
 const ACCENT_HEX: Record<string, string> = {
-  white: '#94a3b8', blue: '#3b82f6', green: '#10b981', amber: '#f59e0b',
-  purple: '#a855f7', pink: '#f472b6', teal: '#22d3ee', orange: '#f97316',
+  white: '#94a3b8', blue: '#3b82f6', green: '#32d4a1', amber: '#f5d70b',
+  purple: '#a855f7', pink: '#f472b6', teal: '#22d3ee', orange: '#ec9439',
   lime: '#a3e635', slate: '#475569',
 };
 

@@ -12,12 +12,13 @@ const COLORS: Record<
   string,
   { accent: string; glow: string; ring: string; swatch: string }
 > = {
-  white:  { accent: 'rgba(255,255,255,0.1)', glow: '0 0 28px rgba(255,255,255,0.1)', ring: 'rgba(255,255,255,0.4)', swatch: '#94a3b8' },
-  blue:   { accent: '#3b82f6',               glow: '0 0 28px rgba(59,130,246,0.4)',  ring: 'rgba(59,130,246,0.7)',  swatch: '#3b82f6' },
-  green:  { accent: '#10b981',               glow: '0 0 28px rgba(16,185,129,0.4)', ring: 'rgba(16,185,129,0.7)', swatch: '#10b981' },
-  amber:  { accent: '#f59e0b',               glow: '0 0 28px rgba(245,158,11,0.4)', ring: 'rgba(245,158,11,0.7)', swatch: '#f59e0b' },
-  purple: { accent: '#a855f7',               glow: '0 0 28px rgba(168,85,247,0.4)', ring: 'rgba(168,85,247,0.7)', swatch: '#a855f7' },
-  pink:   { accent: '#f472b6',               glow: '0 0 28px rgba(244,114,182,0.4)',ring: 'rgba(244,114,182,0.7)',swatch: '#f472b6' },
+  white: { accent: '#ffffffce', glow: '0 0 28px rgba(255,255,255,0.4)', ring: 'rgba(255,255,255,0.7)', swatch: '#d0d6e2' },
+  purple: { accent: '#a855f7', glow: '0 0 28px rgba(168,85,247,0.4)', ring: 'rgba(168,85,247,0.7)', swatch: '#a855f7' },
+  blue: { accent: '#3b82f6', glow: '0 0 28px rgba(59,130,246,0.4)', ring: 'rgba(59,130,246,0.7)', swatch: '#3b82f6' },
+  yellow:  { accent: '#f5d70b', glow: '0 0 28px rgba(245,158,11,0.4)', ring: 'rgba(245,158,11,0.7)', swatch: '#f5d70b' },
+  green: { accent: '#32d4a1', glow: '0 0 28px rgba(16,185,129,0.4)', ring: 'rgba(16,185,129,0.7)', swatch: '#32d4a1' },
+  red: { accent: '#f44355', glow: '0 0 28px rgba(244,120,120,0.4)', ring: 'rgba(244,120,120,0.7)', swatch: '#f44355' },
+  amber:  { accent: '#f59e0b', glow: '0 0 28px rgba(245,158,11,0.4)', ring: 'rgba(245,158,11,0.7)', swatch: '#f59e0b' },
 };
 
 const BookmarkNode = ({ data, selected, id }: NodeProps<WhiteboardNode['data']>) => {
@@ -244,7 +245,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<WhiteboardNode['data']>)
       {/* Floating action bar */}
       <div
         className={cn(
-          'absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
+          'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
           isEditing || selected
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'

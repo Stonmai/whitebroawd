@@ -32,12 +32,12 @@ const COLORS: Record<
     text: '#0a0b16',
     swatch: '#22d3ee',
   },
-  orange: {
-    gradient: 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fde68a 100%)',
-    glow: '0 0 0 2px rgba(249,115,22,0.5), 0 0 30px rgba(249,115,22,0.4)',
-    ring: 'rgba(249,115,22,0.7)',
+  yellow: {
+    gradient: 'linear-gradient(135deg, #ecd32e 0%, #f9d566 50%, #fff8a2 100%)',
+    glow: '0 0 0 2px rgba(249,215,100,0.5), 0 0 30px rgba(249,215,100,0.4)',
+    ring: 'rgba(249,215,100,0.7)',
     text: '#1a0800',
-    swatch: '#f97316',
+    swatch: '#ecd32e',
   },
   pink: {
     gradient: 'linear-gradient(135deg, #ec4899 0%, #f472b6 60%, #fda4af 100%)',
@@ -60,8 +60,15 @@ const COLORS: Record<
     text: '#0c1a00',
     swatch: '#a3e635',
   },
+  orange: {
+    gradient: 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fde68a 100%)',
+    glow: '0 0 0 2px rgba(249,115,22,0.5), 0 0 30px rgba(249,115,22,0.4)',
+    ring: 'rgba(249,115,22,0.7)',
+    text: '#1a0800',
+    swatch: '#f97316',
+  },
   slate: {
-    gradient: 'linear-gradient(135deg, #1e293b 0%, #334155 60%, #475569 100%)',
+    gradient: 'linear-gradient(135deg,#494e69 0%, #656588 60%, #878ba3 100%)',
     glow: '0 0 0 2px rgba(148,163,184,0.3), 0 0 20px rgba(148,163,184,0.2)',
     ring: 'rgba(148,163,184,0.5)',
     text: '#ffffff',
@@ -235,7 +242,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<WhiteboardNode['data']>) => 
         {/* Floating action bar */}
         <div
           className={cn(
-            'absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
+            'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
             isEditing || selected
               ? 'opacity-100 translate-y-0'
               : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
